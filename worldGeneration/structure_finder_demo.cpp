@@ -95,7 +95,7 @@ int isFeatureChunk(const StructureConfig &cfg, uint32_t worldSeed, ChunkPos &chu
     return (r1 + r2) / 2 == x_offset && (r3 + r4) / 2 == z_offset;
 }
 
-//RANDOM_SCATTERED NETHER_FEATURE
+//RANDOM_SCATTERED
 int isFeatureChunk2(const StructureConfig &cfg, uint32_t worldSeed, ChunkPos &chunkPos) {
     if (chunkPos.x < 0) chunkPos.x -= cfg.spacing - 1;
     if (chunkPos.z < 0)chunkPos.z -= cfg.spacing - 1;
@@ -109,7 +109,23 @@ int isFeatureChunk2(const StructureConfig &cfg, uint32_t worldSeed, ChunkPos &ch
     if (zOff < 0) zOff += cfg.spacing - 1;
     return r1 == xOff && r2 == zOff;
 }
-
+//NETHER_FEATURE
+int netherCheck(uint32_t worldSeed, ChunkPos &chunkPos) {
+    if (chunkPos.x < 0) chunkPos.x -= NETHER_FEATURE.spacing - 1;
+    if (chunkPos.z < 0)chunkPos.z -= NETHER_FEATURE.spacing - 1;
+    uint32_t seed = getSeed(worldSeed, NETHER_FEATURE.salt,
+                            chunkPos.x / NETHER_FEATURE.spacing, chunkPos.z / NETHER_FEATURE.spacing);
+    PartyMT<3> mt(seed);
+    uint32_t r1 = mt.result[0] % NETHER_FEATURE.spawnRange;
+    uint32_t r2 = mt.result[1] % NETHER_FEATURE.spawnRange;
+    int xOff = chunkPos.x % NETHER_FEATURE.spacing;
+    int zOff = chunkPos.z % NETHER_FEATURE.spacing;
+    if (xOff < 0) xOff += NETHER_FEATURE.spacing - 1;
+    if (zOff < 0) zOff += NETHER_FEATURE.spacing - 1;
+    auto find = r1 == xOff && r2 == zOff;
+    if (!find)return 0;
+    return mt.result[2] % 6 >= 2 ? 14 : 2;
+}
 
 
 
